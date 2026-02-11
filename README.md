@@ -27,8 +27,15 @@ cp .env.example .env
 
 ### Install playwright-cli (for browser automation workflows)
 
+https://github.com/microsoft/playwright-cli
+
+```bash
+npm install -g @playwright/cli@latest
+```
 ```bash
 playwright-cli install --skills
+```
+```bash
 playwright-cli install-browser
 ```
 

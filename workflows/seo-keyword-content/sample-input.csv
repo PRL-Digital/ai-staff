@@ -1,3 +1,0 @@
-query,wp_post_url,content_type,template_path,target_audience,notes
-best running shoes,https://example.com/wp-json/wp/v2/services/123,service,templates/service-template.md,fitness enthusiasts,focus on trail running
-home security cameras,https://example.com/wp-json/wp/v2/pages/456,page,templates/page-template.md,homeowners,
