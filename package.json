@@ -1,0 +1,14 @@
+{
+  "name": "ai-staff",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "generate-image": "node --env-file=.env src/generate-image.js",
+    "html-to-png": "node src/scripts/html-to-png.js",
+    "resize-image": "node src/scripts/resize-image.js"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "sharp": "^0.33.0"
+  }
+}

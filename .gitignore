@@ -1,0 +1,7 @@
+node_modules/
+.env
+.playwright-cli/
+
+# Workflow run outputs (keep the directory structure via .gitkeep)
+output/*/
+!output/.gitkeep

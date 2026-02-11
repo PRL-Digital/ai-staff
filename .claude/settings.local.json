@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__serena__list_memories",
+      "Skill(skills:agent-browser)",
+      "Bash(where:*)",
+      "mcp__serena__activate_project",
+      "Skill(skills:playwright-cli)",
+      "Bash(npx playwright:*)",
+      "mcp__serena__list_dir",
+      "WebFetch(domain:ai.google.dev)",
+      "Bash(node --env-file=.env src/generate-image.js:*)",
+      "Skill(skills:generate-image)",
+      "WebSearch",
+      "mcp__serena__initial_instructions",
+      "WebFetch(domain:github.com)",
+      "Bash(playwright-cli open:*)",
+      "Bash(playwright-cli snapshot:*)",
+      "Bash(playwright-cli click:*)",
+      "Bash(playwright-cli:*)",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__think_about_collected_information",
+      "mcp__serena__onboarding",
+      "mcp__serena__write_memory",
+      "Bash(jq:*)",
+      "mcp__serena__think_about_task_adherence",
+      "Bash(node src/scripts/parse-input.js:*)",
+      "Bash(echo:*)",
+      "mcp__serena__read_memory",
+      "Bash(node src/scripts/html-to-png.js:*)",
+      "Skill(skills:html-to-png)",
+      "Bash(node src/scripts/resize-image.js:*)",
+      "Skill(skills:resize-image)",
+      "Bash(node --check:*)",
+      "mcp__serena__think_about_whether_you_are_done"
+    ]
+  }
+}
