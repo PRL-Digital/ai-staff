@@ -1,7 +1,7 @@
 ---
 name: generate-image
 description: Generates an image from a text prompt using Google Gemini. Use when the user asks you to create, generate, draw, or make an image, picture, illustration, or graphic.
-allowed-tools: Bash(node --env-file=.env src/scripts/generate-image.js:*)
+allowed-tools: Bash(tsx --env-file=.env src/scripts/generate-image.ts:*)
 ---
 
 # Image Generation with Gemini
@@ -12,10 +12,10 @@ Generate images by running the generate-image script with a descriptive prompt. 
 
 ```bash
 # Text-only prompt
-node --env-file=.env src/scripts/generate-image.js "<prompt>"
+tsx --env-file=.env src/scripts/generate-image.ts "<prompt>"
 
 # With reference images
-node --env-file=.env src/scripts/generate-image.js "<prompt>" --ref <image-or-folder> [--ref <image-or-folder>]...
+tsx --env-file=.env src/scripts/generate-image.ts "<prompt>" --ref <image-or-folder> [--ref <image-or-folder>]...
 ```
 
 The script outputs the absolute file path of the saved image.
@@ -44,16 +44,16 @@ When using `--ref`, write your prompt so it refers to the provided images (e.g. 
 
 ```bash
 # Simple text-only generation
-node --env-file=.env src/scripts/generate-image.js "a watercolor painting of a cozy cabin in the woods at sunset, warm golden light, autumn leaves"
+tsx --env-file=.env src/scripts/generate-image.ts "a watercolor painting of a cozy cabin in the woods at sunset, warm golden light, autumn leaves"
 
 # Generate a new scene with a consistent character
-node --env-file=.env src/scripts/generate-image.js "the same character from the reference, now sitting in a bustling coffee shop, same art style" --ref output/images/abc123.png
+tsx --env-file=.env src/scripts/generate-image.ts "the same character from the reference, now sitting in a bustling coffee shop, same art style" --ref output/images/abc123.png
 
 # Use a folder of style reference images
-node --env-file=.env src/scripts/generate-image.js "a new landscape in the same artistic style as the references" --ref output/images/style-refs/
+tsx --env-file=.env src/scripts/generate-image.ts "a new landscape in the same artistic style as the references" --ref output/images/style-refs/
 
 # Multiple specific references
-node --env-file=.env src/scripts/generate-image.js "group portrait of these two characters together in a park" --ref output/images/char-a.png --ref output/images/char-b.png
+tsx --env-file=.env src/scripts/generate-image.ts "group portrait of these two characters together in a park" --ref output/images/char-a.png --ref output/images/char-b.png
 ```
 
 Then read the returned file path to show the image.

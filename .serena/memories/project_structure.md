@@ -8,7 +8,7 @@ ai-staff/
 │   │   └── skills/
 │   │       ├── generate-image.md
 │   │       ├── iso-now.md
-│   │       └── playwright-cli.md
+│   │       └── agent-browser.md
 │   └── settings.local.json
 ├── .serena/               # Serena configuration
 │   └── project.yml        # Language: typescript (used for JS too)

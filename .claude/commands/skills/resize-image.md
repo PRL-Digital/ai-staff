@@ -1,7 +1,7 @@
 ---
 name: resize-image
 description: Resizes, crops, and converts images between formats (PNG, JPEG, WebP). Use when the user wants to resize, crop, compress, or convert an image file.
-allowed-tools: Bash(node src/scripts/resize-image.js:*)
+allowed-tools: Bash(tsx src/scripts/resize-image.ts:*)
 ---
 
 # Image Resize, Crop & Convert
@@ -12,22 +12,22 @@ Resize, crop, and convert images using sharp. Supports PNG, JPEG, and WebP forma
 
 ```bash
 # Resize (fit within dimensions, preserving aspect ratio)
-node src/scripts/resize-image.js <image> --resize 400x400
+tsx src/scripts/resize-image.ts <image> --resize 400x400
 
 # Crop to exact dimensions from center
-node src/scripts/resize-image.js <image> --crop 1080x1080
+tsx src/scripts/resize-image.ts <image> --crop 1080x1080
 
 # Crop a specific region (WxH at offset +X+Y)
-node src/scripts/resize-image.js <image> --crop 400x300+100+50
+tsx src/scripts/resize-image.ts <image> --crop 400x300+100+50
 
 # Convert format
-node src/scripts/resize-image.js <image> --format webp
+tsx src/scripts/resize-image.ts <image> --format webp
 
 # Resize + convert + custom quality
-node src/scripts/resize-image.js <image> --resize 800x600 --format jpeg --quality 90
+tsx src/scripts/resize-image.ts <image> --resize 800x600 --format jpeg --quality 90
 
 # Specify output path
-node src/scripts/resize-image.js <image> --resize 400x400 --output output/images/thumb.png
+tsx src/scripts/resize-image.ts <image> --resize 400x400 --output output/images/thumb.png
 ```
 
 The script outputs the absolute file path of the saved image.
@@ -64,17 +64,17 @@ The script outputs the absolute file path of the saved image.
 
 ```bash
 # Create a thumbnail
-node src/scripts/resize-image.js output/images/photo.png --resize 200x200
+tsx src/scripts/resize-image.ts output/images/photo.png --resize 200x200
 
 # Square crop for Instagram
-node src/scripts/resize-image.js output/images/photo.png --crop 1080x1080
+tsx src/scripts/resize-image.ts output/images/photo.png --crop 1080x1080
 
 # Convert PNG to compressed JPEG
-node src/scripts/resize-image.js output/images/large.png --format jpeg --quality 80
+tsx src/scripts/resize-image.ts output/images/large.png --format jpeg --quality 80
 
 # Resize an OG image down for Twitter
-node src/scripts/resize-image.js output/images/og-card.png --resize 600x314
+tsx src/scripts/resize-image.ts output/images/og-card.png --resize 600x314
 
 # Extract a region from a screenshot
-node src/scripts/resize-image.js output/images/screenshot.png --crop 400x300+100+200
+tsx src/scripts/resize-image.ts output/images/screenshot.png --crop 400x300+100+200
 ```

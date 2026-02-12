@@ -8,7 +8,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const OUTPUT_DIR = path.resolve("output/images");
 
 const SUPPORTED_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif"]);
-const MIME_TYPES = {
+const MIME_TYPES: Record<string, string> = {
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -18,14 +18,23 @@ const MIME_TYPES = {
 const MAX_REFERENCE_IMAGES = 10;
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024; // 20 MB
 
+interface ReferenceImage {
+  filePath: string;
+  mimeType: string;
+}
+
+interface GenerateImageOptions {
+  outputDir?: string;
+  filename?: string;
+  referenceImages?: string[];
+}
+
 /**
  * Resolve an array of file/folder paths into a flat list of reference images.
  * Directories are scanned for files with supported image extensions.
- * @param {string[]} refs - File or directory paths.
- * @returns {{ filePath: string, mimeType: string }[]}
  */
-function resolveReferenceImages(refs) {
-  const images = [];
+function resolveReferenceImages(refs: string[]): ReferenceImage[] {
+  const images: string[] = [];
 
   for (const ref of refs) {
     const resolved = path.resolve(ref);
@@ -73,38 +82,28 @@ function resolveReferenceImages(refs) {
 
 /**
  * Build the contents payload for the Gemini API.
- * Returns a plain string when no references (preserving current behavior),
- * or a Content[] array with inline base64 image parts + text part when refs exist.
- * @param {string} prompt
- * @param {{ filePath: string, mimeType: string }[]} [referenceImages]
- * @returns {string | object[]}
  */
-function buildContents(prompt, referenceImages) {
+function buildContents(prompt: string, referenceImages?: ReferenceImage[]) {
   if (!referenceImages || referenceImages.length === 0) {
     return prompt;
   }
 
-  const parts = referenceImages.map(({ filePath, mimeType }) => ({
-    inlineData: {
-      mimeType,
-      data: fs.readFileSync(filePath).toString("base64"),
-    },
-  }));
+  const parts: Array<{ inlineData: { mimeType: string; data: string } } | { text: string }> =
+    referenceImages.map(({ filePath, mimeType }) => ({
+      inlineData: {
+        mimeType,
+        data: fs.readFileSync(filePath).toString("base64"),
+      },
+    }));
   parts.push({ text: prompt });
 
-  return [{ role: "user", parts }];
+  return [{ role: "user" as const, parts }];
 }
 
 /**
  * Generate an image from a text prompt using Gemini.
- * @param {string} prompt - The text prompt describing the image to generate.
- * @param {object} [options]
- * @param {string} [options.outputDir] - Directory to save the image. Defaults to output/images.
- * @param {string} [options.filename] - Filename (without extension). Defaults to a random id.
- * @param {string[]} [options.referenceImages] - File or directory paths to reference images.
- * @returns {Promise<string>} The absolute path to the saved image file.
  */
-export async function generateImage(prompt, options = {}) {
+export async function generateImage(prompt: string, options: GenerateImageOptions = {}): Promise<string> {
   const outputDir = options.outputDir || OUTPUT_DIR;
   const filename = options.filename || crypto.randomUUID();
 
@@ -120,11 +119,11 @@ export async function generateImage(prompt, options = {}) {
     contents,
   });
 
-  for (const part of response.candidates[0].content.parts) {
+  for (const part of response.candidates![0].content!.parts!) {
     if (part.inlineData) {
       const ext = part.inlineData.mimeType?.split("/")[1] || "png";
       const filePath = path.join(outputDir, `${filename}.${ext}`);
-      const buffer = Buffer.from(part.inlineData.data, "base64");
+      const buffer = Buffer.from(part.inlineData.data!, "base64");
       fs.writeFileSync(filePath, buffer);
       return path.resolve(filePath);
     }
@@ -133,12 +132,12 @@ export async function generateImage(prompt, options = {}) {
   throw new Error("No image was returned by the model.");
 }
 
-// CLI usage: node --env-file=.env src/generate-image.js "a cat wearing a top hat" [--ref <path>]...
+// CLI usage: tsx --env-file=.env src/scripts/generate-image.ts "a cat wearing a top hat" [--ref <path>]...
 const isMain = process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1]));
 if (isMain) {
   const args = process.argv.slice(2);
-  let prompt;
-  const refs = [];
+  let prompt: string | undefined;
+  const refs: string[] = [];
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--ref") {
@@ -154,14 +153,14 @@ if (isMain) {
 
   if (!prompt) {
     console.error(
-      "Usage: node src/generate-image.js <prompt> [--ref <image-or-folder>]...",
+      "Usage: tsx src/scripts/generate-image.ts <prompt> [--ref <image-or-folder>]...",
     );
     process.exit(1);
   }
 
   generateImage(prompt, { referenceImages: refs.length > 0 ? refs : undefined })
     .then((filePath) => console.log(filePath))
-    .catch((err) => {
+    .catch((err: Error) => {
       console.error(err.message);
       process.exit(1);
     });

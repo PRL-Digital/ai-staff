@@ -4,12 +4,20 @@ import path from "node:path";
 
 const OUTPUT_DIR = path.resolve("output/images");
 
+interface ResizeImageOptions {
+  resize?: string;
+  crop?: string;
+  fit?: "cover" | "contain" | "fill" | "inside" | "outside";
+  gravity?: string;
+  format?: "png" | "jpeg" | "jpg" | "webp";
+  quality?: number;
+  output?: string;
+}
+
 /**
  * Parse a dimension string like "400x300" into { width, height }.
- * @param {string} str
- * @returns {{ width: number, height: number }}
  */
-function parseDimensions(str) {
+function parseDimensions(str: string): { width: number; height: number } {
   const match = str.match(/^(\d+)x(\d+)$/);
   if (!match) throw new Error(`Invalid dimensions: "${str}" (expected WxH, e.g. 400x300)`);
   return { width: Number(match[1]), height: Number(match[2]) };
@@ -17,16 +25,17 @@ function parseDimensions(str) {
 
 /**
  * Parse a crop spec like "400x300" or "400x300+10+20" into extract/resize params.
- * @param {string} str
- * @returns {{ width: number, height: number, left?: number, top?: number }}
  */
-function parseCropSpec(str) {
+function parseCropSpec(str: string): { width: number; height: number; left?: number; top?: number } {
   const match = str.match(/^(\d+)x(\d+)(?:\+(\d+)\+(\d+))?$/);
   if (!match)
     throw new Error(
       `Invalid crop spec: "${str}" (expected WxH or WxH+X+Y, e.g. 400x300 or 400x300+10+20)`,
     );
-  const result = { width: Number(match[1]), height: Number(match[2]) };
+  const result: { width: number; height: number; left?: number; top?: number } = {
+    width: Number(match[1]),
+    height: Number(match[2]),
+  };
   if (match[3] !== undefined) {
     result.left = Number(match[3]);
     result.top = Number(match[4]);
@@ -36,18 +45,8 @@ function parseCropSpec(str) {
 
 /**
  * Resize, crop, or convert an image using sharp.
- * @param {string} inputPath - Path to the source image.
- * @param {object} options
- * @param {string} [options.resize] - Resize dimensions "WxH". Preserves aspect ratio by default.
- * @param {string} [options.crop] - Crop spec "WxH" (center crop) or "WxH+X+Y" (region extract).
- * @param {"cover"|"contain"|"fill"|"inside"|"outside"} [options.fit="inside"] - Sharp fit mode for resize.
- * @param {string} [options.gravity="centre"] - Gravity for cover crop (centre, north, south, east, west, etc.).
- * @param {"png"|"jpeg"|"jpg"|"webp"} [options.format] - Output format. Defaults to input format.
- * @param {number} [options.quality] - Quality for JPEG/WebP (1-100).
- * @param {string} [options.output] - Output file path. Defaults to auto-generated name in output/images/.
- * @returns {Promise<string>} Absolute path to the output file.
  */
-export async function resizeImage(inputPath, options = {}) {
+export async function resizeImage(inputPath: string, options: ResizeImageOptions = {}): Promise<string> {
   const resolved = path.resolve(inputPath);
   if (!fs.existsSync(resolved)) {
     throw new Error(`Input file not found: ${resolved}`);
@@ -62,7 +61,7 @@ export async function resizeImage(inputPath, options = {}) {
       // Region extract: WxH+X+Y
       pipeline = pipeline.extract({
         left: spec.left,
-        top: spec.top,
+        top: spec.top!,
         width: spec.width,
         height: spec.height,
       });
@@ -88,7 +87,7 @@ export async function resizeImage(inputPath, options = {}) {
 
   // Determine output format
   const inputExt = path.extname(resolved).toLowerCase().replace(".", "");
-  let format = options.format || inputExt || "png";
+  let format: string = options.format || inputExt || "png";
   if (format === "jpg") format = "jpeg";
 
   // Apply format and compression
@@ -101,7 +100,7 @@ export async function resizeImage(inputPath, options = {}) {
   }
 
   // Determine output path
-  let outputPath;
+  let outputPath: string;
   if (options.output) {
     outputPath = path.resolve(options.output);
   } else {
@@ -120,11 +119,14 @@ export async function resizeImage(inputPath, options = {}) {
 }
 
 // CLI
-const isMain = process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1]));
+const isMain =
+  process.argv[1] &&
+  (import.meta.url.endsWith(path.basename(process.argv[1])) ||
+    import.meta.url.endsWith(path.basename(process.argv[1]).replace(/\.ts$/, ".ts")));
 if (isMain) {
   const args = process.argv.slice(2);
-  let inputFile;
-  const opts = {};
+  let inputFile: string | undefined;
+  const opts: ResizeImageOptions = {};
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -135,13 +137,13 @@ if (isMain) {
         opts.crop = args[++i];
         break;
       case "--fit":
-        opts.fit = args[++i];
+        opts.fit = args[++i] as ResizeImageOptions["fit"];
         break;
       case "--gravity":
         opts.gravity = args[++i];
         break;
       case "--format":
-        opts.format = args[++i];
+        opts.format = args[++i] as ResizeImageOptions["format"];
         break;
       case "--quality":
         opts.quality = Number(args[++i]);
@@ -157,14 +159,14 @@ if (isMain) {
 
   if (!inputFile || (!opts.resize && !opts.crop && !opts.format)) {
     console.error(
-      "Usage: node src/scripts/resize-image.js <image> --resize <W>x<H> | --crop <W>x<H>[+X+Y] [--fit <mode>] [--gravity <pos>] [--format <fmt>] [--quality <n>] [--output <path>]",
+      "Usage: tsx src/scripts/resize-image.ts <image> --resize <W>x<H> | --crop <W>x<H>[+X+Y] [--fit <mode>] [--gravity <pos>] [--format <fmt>] [--quality <n>] [--output <path>]",
     );
     process.exit(1);
   }
 
   resizeImage(inputFile, opts)
     .then((filePath) => console.log(filePath))
-    .catch((err) => {
+    .catch((err: Error) => {
       console.error(err.message);
       process.exit(1);
     });

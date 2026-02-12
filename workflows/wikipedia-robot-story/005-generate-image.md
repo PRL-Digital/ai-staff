@@ -28,7 +28,7 @@ Based on the story paragraph, write a detailed image generation prompt that:
 Run the image generation script:
 
 ```bash
-node --env-file=.env src/scripts/generate-image.js "<your detailed prompt>"
+tsx --env-file=.env src/scripts/generate-image.ts "<your detailed prompt>"
 ```
 
 The script will output the file path of the saved image.

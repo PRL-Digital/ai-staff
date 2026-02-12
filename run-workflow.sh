@@ -76,6 +76,11 @@ strip_frontmatter() {
 
 # ── Stream JSON Parsing ─────────────────────────────────────────────
 # Reads claude's stream-json output, displays text, captures result
+# Uses Node.js instead of jq for JSON parsing
+json_extract() {
+  node "${SCRIPT_DIR}/src/scripts/json-extract.js" "$1" "$2"
+}
+
 parse_stream_json() {
   local output_file="$1"
   local result_text=""
@@ -84,20 +89,19 @@ parse_stream_json() {
     [[ -z "$line" ]] && continue
 
     local msg_type
-    msg_type=$(echo "$line" | jq -r '.type // empty' 2>/dev/null) || continue
+    msg_type=$(json_extract "$line" "o.type") || continue
+    [[ -z "$msg_type" ]] && continue
 
     if [[ "$msg_type" == "assistant" ]]; then
       local text
-      text=$(echo "$line" | jq -r '
-        .message.content[]? | select(.type=="text") | .text // empty
-      ' 2>/dev/null) || true
+      text=$(json_extract "$line" "(o.message.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\\n')") || true
       if [[ -n "$text" ]]; then
         echo -e "  ${DIM}${text}${RESET}"
         result_text="$text"
       fi
     elif [[ "$msg_type" == "result" ]]; then
       local res
-      res=$(echo "$line" | jq -r '.result // empty' 2>/dev/null) || true
+      res=$(json_extract "$line" "o.result") || true
       if [[ -n "$res" ]]; then
         result_text="$res"
       fi
@@ -171,6 +175,17 @@ else
   INITIAL_ARG="${1:?Error: initial argument required}"
   shift
   MAX_ITERATIONS="${1:-50}"
+fi
+
+# ── Validate Prerequisites ────────────────────────────────────────────
+if ! command -v claude &>/dev/null; then
+  die "claude CLI not found on PATH. Install it or run from a shell where it's available."
+fi
+if ! command -v node &>/dev/null; then
+  die "node not found on PATH. Install Node.js (v18+)."
+fi
+if ! command -v tsx &>/dev/null; then
+  die "tsx not found on PATH. Run: npm install --save-dev tsx"
 fi
 
 # ── Validate Workflow ────────────────────────────────────────────────
@@ -424,7 +439,7 @@ Write your output/results to: \`${OUTPUT_FILE}\`"
     --dangerously-skip-permissions \
     --output-format stream-json \
     --verbose \
-    --model "$MODEL_ID" 2>/dev/null \
+    --model "$MODEL_ID" \
     | parse_stream_json "$OUTPUT_FILE" || CLAUDE_EXIT=$?
 
   echo "──────────────────────────────────────────"

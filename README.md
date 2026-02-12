@@ -8,7 +8,7 @@ A CLI workflow automation system that orchestrates multi-step AI workflows using
 - **npm**
 - **Bash** (Git Bash / MSYS2 on Windows)
 - **Claude CLI** — the `claude` command must be available on your PATH ([install guide](https://docs.anthropic.com/en/docs/claude-code))
-- **playwright-cli** — required for workflows that use browser automation
+- **agent-browser** — required for workflows that use browser automation
 
 ## Installation
 
@@ -25,18 +25,13 @@ cp .env.example .env
 # Edit .env and set GEMINI_API_KEY (required for image generation workflows)
 ```
 
-### Install playwright-cli (for browser automation workflows)
-
-https://github.com/microsoft/playwright-cli
+### Install agent-browser (for browser automation workflows)
 
 ```bash
-npm install -g @playwright/cli@latest
+npm install -g agent-browser
 ```
 ```bash
-playwright-cli install --skills
-```
-```bash
-playwright-cli install-browser
+agent-browser install
 ```
 
 ## Environment Variables

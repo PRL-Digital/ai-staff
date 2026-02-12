@@ -2,10 +2,10 @@
 // Parse and validate a JSON initial argument for workflow steps.
 //
 // Usage:
-//   node src/scripts/parse-input.js <json-string> <output-path> <required-field> [required-field...]
+//   tsx src/scripts/parse-input.ts <json-string> <output-path> <required-field> [required-field...]
 //
 // Examples:
-//   node src/scripts/parse-input.js '{"query":"shoes","wp_post_url":"...","content_type":"service"}' \
+//   tsx src/scripts/parse-input.ts '{"query":"shoes","wp_post_url":"...","content_type":"service"}' \
 //     output/seo-keyword-content/run-id/context/input.json query wp_post_url content_type
 //
 // Exit codes:
@@ -19,17 +19,17 @@ const [jsonString, outputPath, ...requiredFields] = process.argv.slice(2);
 
 if (!jsonString || !outputPath) {
   console.error(
-    "Usage: parse-input.js <json-string> <output-path> <required-field> [...]"
+    "Usage: parse-input.ts <json-string> <output-path> <required-field> [...]",
   );
   process.exit(1);
 }
 
 // Parse JSON
-let data;
+let data: Record<string, unknown>;
 try {
-  data = JSON.parse(jsonString);
+  data = JSON.parse(jsonString) as Record<string, unknown>;
 } catch (e) {
-  console.error(`Invalid JSON: ${e.message}`);
+  console.error(`Invalid JSON: ${(e as Error).message}`);
   process.exit(1);
 }
 
@@ -40,7 +40,7 @@ if (typeof data !== "object" || data === null || Array.isArray(data)) {
 
 // Validate required fields
 const missing = requiredFields.filter(
-  (f) => !(f in data) || data[f] === "" || data[f] === null
+  (f) => !(f in data) || data[f] === "" || data[f] === null,
 );
 
 if (missing.length > 0) {

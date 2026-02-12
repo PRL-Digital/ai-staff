@@ -10,12 +10,17 @@ const SESSION_NAME = "html-render";
 
 const TAILWIND_CDN = '<script src="https://cdn.tailwindcss.com"></script>';
 
+interface HtmlToPngOptions {
+  width?: number;
+  height?: number;
+  fullPage?: boolean;
+  output?: string;
+}
+
 /**
  * Inject Tailwind CDN script into HTML if not already present.
- * @param {string} html
- * @returns {string}
  */
-function injectTailwind(html) {
+function injectTailwind(html: string): string {
   if (html.includes("tailwindcss") || html.includes("tailwind.css")) {
     return html;
   }
@@ -30,14 +35,11 @@ function injectTailwind(html) {
 }
 
 /**
- * Run a playwright-cli command for the html-render session.
- * @param {string} command
- * @param  {...string} args
- * @returns {string} stdout
+ * Run an agent-browser command for the html-render session.
  */
-function pw(command, ...args) {
-  const fullArgs = [`-s=${SESSION_NAME}`, command, ...args];
-  const result = execFileSync("playwright-cli", fullArgs, {
+function pw(command: string, ...args: string[]): string {
+  const fullArgs = ["--session", SESSION_NAME, command, ...args];
+  const result = execFileSync("agent-browser", fullArgs, {
     encoding: "utf-8",
     timeout: 30000,
     stdio: ["pipe", "pipe", "pipe"],
@@ -46,16 +48,9 @@ function pw(command, ...args) {
 }
 
 /**
- * Render an HTML file to a compressed PNG using playwright-cli and sharp.
- * @param {string} htmlFile - Path to the HTML file.
- * @param {object} [options]
- * @param {number} [options.width=1200] - Viewport width.
- * @param {number} [options.height=630] - Viewport height.
- * @param {boolean} [options.fullPage=false] - Capture full page height.
- * @param {string} [options.output] - Output file path. Defaults to output/images/<uuid>.png.
- * @returns {Promise<string>} Absolute path to the output PNG.
+ * Render an HTML file to a compressed PNG using agent-browser and sharp.
  */
-export async function htmlToPng(htmlFile, options = {}) {
+export async function htmlToPng(htmlFile: string, options: HtmlToPngOptions = {}): Promise<string> {
   const width = options.width || 1200;
   const height = options.height || 630;
   const fullPage = options.fullPage || false;
@@ -82,15 +77,15 @@ export async function htmlToPng(htmlFile, options = {}) {
     const fileUrl = `file:///${tmpFile.replace(/\\/g, "/")}`;
     pw("open", fileUrl);
 
-    // Resize viewport
-    pw("resize", String(width), String(height));
+    // Set viewport size
+    pw("set", "viewport", String(width), String(height));
 
     // Wait for Tailwind CDN and any other resources to load
     pw("eval", "new Promise(r => setTimeout(r, 2000))");
 
     // Take screenshot
-    const screenshotArgs = [`--filename=${tmpScreenshot}`];
-    if (fullPage) screenshotArgs.push("--full-page");
+    const screenshotArgs = [tmpScreenshot];
+    if (fullPage) screenshotArgs.push("--full");
     pw("screenshot", ...screenshotArgs);
 
     // Close the session
@@ -119,8 +114,8 @@ export async function htmlToPng(htmlFile, options = {}) {
 const isMain = process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1]));
 if (isMain) {
   const args = process.argv.slice(2);
-  let htmlFile;
-  const opts = {};
+  let htmlFile: string | undefined;
+  const opts: HtmlToPngOptions = {};
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -144,14 +139,14 @@ if (isMain) {
 
   if (!htmlFile) {
     console.error(
-      "Usage: node src/scripts/html-to-png.js <html-file> [--width 1200] [--height 630] [--full-page] [--output <path>]",
+      "Usage: tsx src/scripts/html-to-png.ts <html-file> [--width 1200] [--height 630] [--full-page] [--output <path>]",
     );
     process.exit(1);
   }
 
   htmlToPng(htmlFile, opts)
     .then((filePath) => console.log(filePath))
-    .catch((err) => {
+    .catch((err: Error) => {
       console.error(err.message);
       process.exit(1);
     });

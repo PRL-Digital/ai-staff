@@ -3,12 +3,22 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "generate-image": "node --env-file=.env src/generate-image.js",
-    "html-to-png": "node src/scripts/html-to-png.js",
-    "resize-image": "node src/scripts/resize-image.js"
+    "generate-image": "tsx --env-file=.env src/scripts/generate-image.ts",
+    "html-to-png": "tsx src/scripts/html-to-png.ts",
+    "pdf-to-json": "tsx src/scripts/pdf-to-json.ts",
+    "read-pdf": "tsx src/scripts/read-pdf.ts",
+    "resize-image": "tsx src/scripts/resize-image.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.0.0",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
     "sharp": "^0.33.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }
