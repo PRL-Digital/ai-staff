@@ -35,7 +35,10 @@
       "Bash(node:*)",
       "Bash(tsx:*)",
       "Bash(npx tsx:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(export PATH=\"./node_modules/.bin:$PATH\")",
+      "Bash(bash:*)",
+      "Bash(npm ls:*)"
     ]
   }
 }

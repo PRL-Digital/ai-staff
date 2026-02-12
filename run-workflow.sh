@@ -78,7 +78,7 @@ strip_frontmatter() {
 # Reads claude's stream-json output, displays text, captures result
 # Uses Node.js instead of jq for JSON parsing
 json_extract() {
-  node "${SCRIPT_DIR}/src/scripts/json-extract.js" "$1" "$2"
+  echo "$1" | node "${SCRIPT_DIR}/src/scripts/json-extract.js" "$2"
 }
 
 parse_stream_json() {
@@ -185,7 +185,11 @@ if ! command -v node &>/dev/null; then
   die "node not found on PATH. Install Node.js (v18+)."
 fi
 if ! command -v tsx &>/dev/null; then
-  die "tsx not found on PATH. Run: npm install --save-dev tsx"
+  if [[ -x "${SCRIPT_DIR}/node_modules/.bin/tsx" ]]; then
+    export PATH="${SCRIPT_DIR}/node_modules/.bin:$PATH"
+  else
+    die "tsx not found on PATH. Run: npm install --save-dev tsx"
+  fi
 fi
 
 # ── Validate Workflow ────────────────────────────────────────────────

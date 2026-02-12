@@ -1,9 +1,11 @@
 ---
 model: opus
 ---
-# Review: Validate Structured Form Schema
+# Structure Review: Validate Structured Form Schema
 
-You are the quality review step. Your job is to verify the structured form schema is complete, accurate, and well-organized.
+You are the structure review step. Your job is to verify the structured form schema is complete, accurate, and well-organized before conditional logic is added.
+
+**Note:** This review does NOT check conditionals — those are added and reviewed in later steps.
 
 ## Instructions
 
@@ -22,19 +24,25 @@ Check each dimension:
 **Completeness**
 - Are ALL fields from raw-fields.json present in structured-form.json?
 - Count fields in both files and compare. Every raw field must appear exactly once.
+- Are instructional notes and guidance text from the PDF captured as `message` type fields where appropriate?
 
 **Label Quality**
 - Are labels human-readable and accurate (not raw tooltip dumps or field name fragments)?
 - Do labels match what a person reading the form would see?
 
 **Hierarchy**
-- Is the structure logical: pages > sections > subsections > fields?
-- Do section titles match the actual form parts and headings?
-- Are fields grouped under the correct sections?
+- **Step-per-Part rule (CRITICAL):** each `Part N.` in the PDF = exactly one step. A Part must NOT be split into multiple steps.
+- `Part N. Title (continued)` headings are treated as the same step as `Part N. Title`, not new steps.
+- Sub-section headings within a Part (e.g., "Your Full Legal Name", "U.S. Mailing Address") must be groups inside the Part's step, not separate steps.
+- Small Parts without sub-sections don't need groups — fields can sit directly in the step's `fields` array.
+- Each group has a valid `id`, `title`, and non-empty `fields` array.
+- No nested groups (only one level of grouping is allowed).
 
-**Conditionals**
-- Are conditional fields correctly identified (e.g., fields that only apply if a previous answer is Yes/No)?
-- Are the conditions described clearly?
+**Step Count Validation**
+- Count distinct `Part N.` headings in the PDF text (treating "Part N. Title" and "Part N. Title (continued)" as the same Part).
+- Compare to actual step count in structured-form.json.
+- If step count > Part count, a Part was likely split into multiple steps → FAIL.
+- Red flag: multiple steps with same part prefix (e.g., `part-2-your-name`, `part-2-mailing-address`) means Part 2 was incorrectly fragmented.
 
 **Checkbox/Radio Groups**
 - Are Yes/No checkbox pairs properly associated?
@@ -56,7 +64,7 @@ Check each dimension:
     "revision_count": 1,
     "issues": [
       {
-        "category": "completeness|labels|hierarchy|conditionals|groups",
+        "category": "completeness|labels|hierarchy|groups",
         "description": "What's wrong",
         "affected_fields": ["field1", "field2"],
         "suggestion": "How to fix it"
@@ -79,5 +87,5 @@ Write to your output file:
 - Evaluation results for each dimension
 - PASS/FAIL decision with reasoning
 - If FAIL: specific issues and what needs to change
-- If PASS: confirmation that the structured form is ready for use
+- If PASS: confirmation that the structure is ready for conditional logic
 - Field count comparison (raw vs structured)
