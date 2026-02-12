@@ -410,6 +410,7 @@ Iteration: ${ITERATION}
 
 ### Output Directory
 All files for this run are at: \`${RUN_DIR}/\`
+When workflow instructions reference \`<run_dir>\`, use: \`${RUN_DIR}\`
 
 ### Available Step Outputs${AVAILABLE_OUTPUTS}
 

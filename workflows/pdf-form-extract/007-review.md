@@ -73,6 +73,7 @@ Check each dimension:
 - Layout hints are correct and complete
 - Document order preserved
 - Conditionals intact
+- Delete `<run_dir>/context/sections-feedback.json` if it exists (clean up stale feedback)
 - Leave `**next_step**` as `auto`
 
 **FAIL:**

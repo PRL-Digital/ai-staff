@@ -48,6 +48,7 @@ Check each dimension:
 - All conditional relationships are correctly identified
 - References are valid and logic is correct
 - No unintended modifications
+- Delete `<run_dir>/context/conditional-feedback.json` if it exists (clean up stale feedback)
 - Leave `**next_step**` as `auto`
 
 **FAIL (conditional issues):**

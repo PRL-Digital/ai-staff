@@ -55,6 +55,7 @@ Check each dimension:
 - All fields accounted for
 - Labels are clean and accurate
 - Hierarchy is logical
+- Delete `<run_dir>/context/review-feedback.json` if it exists (clean up stale feedback)
 - Leave `**next_step**` as `auto`
 
 **FAIL:**
