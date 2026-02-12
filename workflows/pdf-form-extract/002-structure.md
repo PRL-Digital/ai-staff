@@ -90,9 +90,7 @@ All fields require `name` and `type`. The `label` property is required for all t
 | `label`      | Yes      | Human-readable label                                                |
 | `type`       | Yes      | One of: `text`, `checkbox`, `radio`, `select`, `date`, `phone`, `email`, `textarea`, `message` |
 | `content`    | *        | Display text for instructional notes (*required* when `type` is `message`)           |
-| `width`      | No       | Layout hint: `"1-1"` (full), `"1-2"` (half), `"1-3"` (third), `"1-4"` (quarter) |
 | `options`    | No       | Array of `{ "value", "label", "pdfField" }` for radio/select/checkbox |
-| `direction`  | No       | `"horizontal"` or `"vertical"` for radio/checkbox layout           |
 | `placeholder`| No       | Input hint text                                                     |
 | `helpText`   | No       | Additional guidance for the user                                    |
 | `allowEmpty` | No       | For select fields where a blank option is valid                     |
@@ -116,6 +114,7 @@ For radio/checkbox/select fields, `pdfField` goes on each option object instead:
 #### What to EXCLUDE from output
 
 - No `conditional` — conditionals are added by a later step
+- No `width` or `direction` — layout formatting is added by a later step
 - No `itemNumber` — do not include PDF item numbers
 - No raw PDF field names — use semantic snake_case names only
 - No `rect`, `tooltip`, `maxLength`, or other raw extraction metadata
@@ -138,13 +137,11 @@ For radio/checkbox/select fields, `pdfField` goes on each option object instead:
           "name": "reason_for_applying",
           "label": "I am applying for:",
           "type": "radio",
-          "width": "1-1",
           "options": [
             { "value": "initial", "label": "Initial permission to accept employment", "pdfField": "form1[0].Page1[0].Part1_Checkbox[0]" },
             { "value": "replacement", "label": "Replacement of lost, stolen, or damaged employment authorization document", "pdfField": "form1[0].Page1[0].Part1_Checkbox[1]" },
             { "value": "renewal", "label": "Renewal of my permission to accept employment", "pdfField": "form1[0].Page1[0].Part1_Checkbox[2]" }
-          ],
-          "direction": "vertical"
+          ]
         }
       ]
     },
@@ -162,21 +159,18 @@ For radio/checkbox/select fields, `pdfField` goes on each option object instead:
               "name": "last_name",
               "label": "Family Name (Last Name)",
               "type": "text",
-              "width": "1-3",
               "pdfField": "form1[0].Page1[0].Line1a_FamilyName[0]"
             },
             {
               "name": "first_name",
               "label": "Given Name (First Name)",
               "type": "text",
-              "width": "1-3",
               "pdfField": "form1[0].Page1[0].Line1b_GivenName[0]"
             },
             {
               "name": "middle_name",
               "label": "Middle Name",
               "type": "text",
-              "width": "1-3",
               "pdfField": "form1[0].Page1[0].Line1c_MiddleName[0]"
             }
           ]
@@ -190,14 +184,12 @@ For radio/checkbox/select fields, `pdfField` goes on each option object instead:
               "name": "mailing_street",
               "label": "Street Number and Name",
               "type": "text",
-              "width": "1-2",
               "pdfField": "form1[0].Page2[0].Pt2Line4_StreetNumberName[0]"
             },
             {
               "name": "mailing_city",
               "label": "City or Town",
               "type": "text",
-              "width": "1-2",
               "pdfField": "form1[0].Page2[0].Pt2Line4_CityOrTown[0]"
             }
           ]
@@ -206,12 +198,10 @@ For radio/checkbox/select fields, `pdfField` goes on each option object instead:
           "name": "mailing_same_as_physical",
           "label": "Is your physical address the same as your mailing address?",
           "type": "radio",
-          "width": "1-1",
           "options": [
             { "value": "yes", "label": "Yes", "pdfField": "form1[0].Page2[0].Part2Line5_Checkbox[0]" },
             { "value": "no", "label": "No", "pdfField": "form1[0].Page2[0].Part2Line5_Checkbox[1]" }
-          ],
-          "direction": "horizontal"
+          ]
         },
         {
           "type": "group",
@@ -227,7 +217,6 @@ For radio/checkbox/select fields, `pdfField` goes on each option object instead:
               "name": "physical_street",
               "label": "Street Number and Name",
               "type": "text",
-              "width": "1-2",
               "pdfField": "form1[0].Page2[0].Pt2Line7_StreetNumberName[0]"
             }
           ]
