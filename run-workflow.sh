@@ -78,7 +78,7 @@ strip_frontmatter() {
 # Reads claude's stream-json output, displays text, captures result
 # Uses Node.js instead of jq for JSON parsing
 json_extract() {
-  echo "$1" | node "${SCRIPT_DIR}/src/scripts/json-extract.js" "$2"
+  echo "$1" | node "${AI_STAFF_DIR}/src/scripts/json-extract.js" "$2"
 }
 
 parse_stream_json() {
@@ -139,24 +139,57 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # ── Argument Parsing ─────────────────────────────────────────────────
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKFLOW_DIR="${SCRIPT_DIR}/workflows"
-OUTPUT_DIR="${SCRIPT_DIR}/output"
+AI_STAFF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 RESUME_SLUG=""
 WORKFLOW_NAME=""
 INITIAL_ARG=""
 MAX_ITERATIONS=50
+PROJECT_DIR=""
+
+# Parse --project flag (must come before positional args)
+while [[ "${1:-}" == --* ]]; do
+  case "${1:-}" in
+    --project)
+      shift
+      PROJECT_DIR="$(cd "${1:?Error: --project requires a path}" && pwd)"
+      shift
+      ;;
+    --help)
+      break  # handled below
+      ;;
+    *)
+      break  # unknown flag, let later parsing handle it
+      ;;
+  esac
+done
+
+# Default PROJECT_DIR to AI_STAFF_DIR when --project is not used
+PROJECT_DIR="${PROJECT_DIR:-$AI_STAFF_DIR}"
+WORKFLOW_DIR="${PROJECT_DIR}/workflows"
+OUTPUT_DIR="${PROJECT_DIR}/output"
+
+# Build the --project prefix for resume hints
+if [[ "$PROJECT_DIR" != "$AI_STAFF_DIR" ]]; then
+  PROJECT_FLAG="--project ${PROJECT_DIR} "
+else
+  PROJECT_FLAG=""
+fi
 
 if [[ "${1:-}" == "--help" ]] || [[ -z "${1:-}" ]]; then
-  echo "Usage: $0 <workflow-name> \"<initial-argument>\" [max-iterations]"
-  echo "       $0 <workflow-name> --resume <slug> [max-iterations]"
+  echo "Usage: $0 [--project <path>] <workflow-name> \"<initial-argument>\" [max-iterations]"
+  echo "       $0 [--project <path>] <workflow-name> --resume <slug> [max-iterations]"
   echo ""
   echo "Options:"
+  echo "  --project <path>   Use workflows and output from an external project directory"
   echo "  --resume <slug>    Resume a paused run"
   echo "  --help             Show this help"
   echo ""
-  echo "Available workflows:"
+  if [[ "$PROJECT_DIR" != "$AI_STAFF_DIR" ]]; then
+    echo "Available workflows (from ${PROJECT_DIR}):"
+  else
+    echo "Available workflows:"
+  fi
   for d in "${WORKFLOW_DIR}"/*/; do
     [[ -d "$d" ]] && echo "  - $(basename "$d")"
   done
@@ -185,8 +218,8 @@ if ! command -v node &>/dev/null; then
   die "node not found on PATH. Install Node.js (v18+)."
 fi
 if ! command -v tsx &>/dev/null; then
-  if [[ -x "${SCRIPT_DIR}/node_modules/.bin/tsx" ]]; then
-    export PATH="${SCRIPT_DIR}/node_modules/.bin:$PATH"
+  if [[ -x "${AI_STAFF_DIR}/node_modules/.bin/tsx" ]]; then
+    export PATH="${AI_STAFF_DIR}/node_modules/.bin:$PATH"
   else
     die "tsx not found on PATH. Run: npm install --save-dev tsx"
   fi
@@ -273,6 +306,9 @@ echo "╚═══════════════════════�
 echo -e "${RESET}"
 echo -e "  Run ID:    ${CYAN}${SLUG}${RESET}"
 echo -e "  Steps:     ${STEP_COUNT} (${STEP_LIST})"
+if [[ "$PROJECT_DIR" != "$AI_STAFF_DIR" ]]; then
+  echo -e "  Project:   ${DIM}${PROJECT_DIR}/${RESET}"
+fi
 echo -e "  Output:    ${DIM}${RUN_DIR}/${RESET}"
 echo -e "  Max iter:  ${MAX_ITERATIONS}"
 echo -e "  Started:   $(human_timestamp)"
@@ -298,7 +334,7 @@ while true; do
     PAUSE_REASON=$(read_field "$PROGRESS_FILE" "pause_reason")
     echo ""
     log_warn "Workflow paused: ${PAUSE_REASON:-no reason given}"
-    echo -e "  Resume with: ${CYAN}$0 ${WORKFLOW_NAME} --resume ${SLUG}${RESET}"
+    echo -e "  Resume with: ${CYAN}$0 ${PROJECT_FLAG}${WORKFLOW_NAME} --resume ${SLUG}${RESET}"
     break
   fi
 
@@ -310,7 +346,7 @@ while true; do
   # Check iteration limit
   if [[ "$ITERATION" -gt "$MAX_ITERATIONS" ]]; then
     log_warn "Max iterations (${MAX_ITERATIONS}) reached"
-    echo -e "  Resume with: ${CYAN}$0 ${WORKFLOW_NAME} --resume ${SLUG}${RESET}"
+    echo -e "  Resume with: ${CYAN}$0 ${PROJECT_FLAG}${WORKFLOW_NAME} --resume ${SLUG}${RESET}"
     break
   fi
 
@@ -398,6 +434,15 @@ while true; do
 empty"
   fi
 
+  # Build project directory context (only when --project is used)
+  PROJECT_CONTEXT=""
+  if [[ "$PROJECT_DIR" != "$AI_STAFF_DIR" ]]; then
+    PROJECT_CONTEXT="
+### Project Directory
+This workflow belongs to an external project at: \`${PROJECT_DIR}/\`
+"
+  fi
+
   # Build full prompt with injected context
   FULL_PROMPT="${PROMPT_CONTENT}
 
@@ -421,11 +466,11 @@ Contents:${CONTEXT_CONTENTS}
 
 ### Initial Argument
 ${INITIAL_ARG}
-
+${PROJECT_CONTEXT}
 ### Timestamps
 When updating any timestamp in \`IN-PROGRESS.md\`, run this to get the exact current time:
 \`\`\`bash
-bash src/scripts/iso-now.sh
+bash ${AI_STAFF_DIR}/src/scripts/iso-now.sh
 \`\`\`
 
 ### How to Signal Actions
@@ -473,7 +518,7 @@ Write your output/results to: \`${OUTPUT_FILE}\`"
     PAUSE_REASON=$(read_field "$PROGRESS_FILE" "pause_reason")
     echo ""
     log_warn "Paused by step ${STEP_NAME}: ${PAUSE_REASON:-no reason given}"
-    echo -e "  Resume with: ${CYAN}$0 ${WORKFLOW_NAME} --resume ${SLUG}${RESET}"
+    echo -e "  Resume with: ${CYAN}$0 ${PROJECT_FLAG}${WORKFLOW_NAME} --resume ${SLUG}${RESET}"
     break
   fi
 

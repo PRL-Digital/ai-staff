@@ -39,7 +39,8 @@
       "Bash(export PATH=\"./node_modules/.bin:$PATH\")",
       "Bash(bash:*)",
       "Bash(npm ls:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(git mv:*)"
     ]
   }
 }

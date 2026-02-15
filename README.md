@@ -68,9 +68,47 @@ bash run-workflow.sh wikipedia-robot-story "Robots and their history" 10
 bash run-workflow.sh wikipedia-robot-story --resume robots-and-a3f2
 ```
 
+## External Project Workflows
+
+You can define workflows in any project and run them via ai-staff using the `--project` flag. This keeps your workflows alongside the code they operate on, while ai-staff provides the runner and utilities.
+
+### Setup
+
+Create a `workflows/` directory in your project with numbered markdown step files — no config needed:
+
+```
+my-project/
+  workflows/
+    my-workflow/
+      001-gather-data.md
+      002-process.md
+      003-review.md
+  output/              # created automatically by the runner
+```
+
+### Usage
+
+```bash
+# Run an external workflow
+bash /path/to/ai-staff/run-workflow.sh --project /path/to/my-project my-workflow "Process Q4 data"
+
+# List workflows in an external project
+bash /path/to/ai-staff/run-workflow.sh --project /path/to/my-project --help
+
+# Resume a paused external workflow (must pass --project again)
+bash /path/to/ai-staff/run-workflow.sh --project /path/to/my-project my-workflow --resume process-q4-a3f2
+```
+
+When `--project` is used:
+- Workflows are read from `<project>/workflows/`
+- Output is written to `<project>/output/`
+- ai-staff's internal utilities (json-extract.js, iso-now.sh, node_modules) are still resolved from the ai-staff install directory
+
+When `--project` is omitted, behavior is unchanged — workflows and output use ai-staff's own directories.
+
 ## How Workflows Work
 
-Each workflow lives in `workflows/<name>/` as a set of numbered markdown files:
+Each workflow lives in a `workflows/<name>/` directory as a set of numbered markdown files:
 
 ```
 workflows/my-workflow/
